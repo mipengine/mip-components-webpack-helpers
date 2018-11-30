@@ -3,55 +3,48 @@
  * @author mj(zoumiaojiang@gmail.com)
  */
 
-const requires = require.context('babel-runtime/helpers', true, /\.js$/)
-const regenerator = require('babel-runtime/regenerator')
+// __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__
+import regenerator from 'babel-runtime/regenerator'
+import cssBase from 'css-loader/lib/css-base'
+import componentNormalizer from 'vue-loader/lib/runtime/componentNormalizer'
+import addStylesClient from 'vue-style-loader/lib/addStylesClient'
+import listToStyles from 'vue-style-loader/lib/listToStyles'
 
-const cssBase = require('css-loader/lib/css-base')
-const componentNormalizer = require('vue-loader/lib/runtime/componentNormalizer')
-const addStylesClient = require('vue-style-loader/lib/addStylesClient')
-const listToStyles = require('vue-style-loader/lib/listToStyles')
+import symbol from 'babel-runtime/core-js/symbol'
+import set from 'babel-runtime/core-js/set'
+import arrayFrom from 'babel-runtime/core-js/array/from'
 
-// const promise = require('babel-runtime/core-js/promise').default
-const symbol = require('babel-runtime/core-js/symbol').default
-const set = require('babel-runtime/core-js/set').default
-const arrayFrom = require('babel-runtime/core-js/array/from').default
-// const objectAssign = require('babel-runtime/core-js/object/assign').default
-// const objectCreate = require('babel-runtime/core-js/object/create').default
-// const objectFreeze = require('babel-runtime/core-js/object/freeze').default
-// const objectGetPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of').default
+// import promise from 'babel-runtime/core-js/promise'
+// import objectAssign from 'babel-runtime/core-js/object/assign'
+// import objectCreate from 'babel-runtime/core-js/object/create'
+// import objectFreeze from 'babel-runtime/core-js/object/freeze'
+// import objectGetPrototypeOf from 'babel-runtime/core-js/object/get-prototype-of'
 
-function mount (obj, name, host = window) {
+function mount (obj, name, host) {
+  host = host || window
   if (typeof host[name] === 'undefined') {
     host[name] = obj
-    // Object.defineProperty(host, name, {
-    //   value: obj,
-    //   enumerable: true
-    // })
   }
 }
 
-// mount(promise, 'Promise')
-mount(symbol, 'Symbol')
-mount(set, 'Set')
-mount(arrayFrom, 'from', Array)
-// mount(objectAssign, 'assign', Object)
-// mount(objectCreate, 'create', Object)
-// mount(objectFreeze, 'freeze', Object)
-// mount(objectGetPrototypeOf, 'getPrototypeOf', Object)
+var helpers = {}
 
-let helpers = {}
-
-requires.keys().forEach(filename => {
-  helpers[`babel-runtime/helpers/${filename.slice(2, -3)}`] = requires(filename)
-})
-
+// __INJECT_BABEL_RUNTIME_HELPERS_REF__
 helpers['babel-runtime/regenerator'] = regenerator
-
 helpers['css-loader/lib/css-base'] = cssBase
 helpers['vue-loader/lib/runtime/componentNormalizer'] = componentNormalizer
 helpers['vue-style-loader/lib/addStylesClient'] = addStylesClient
 helpers['vue-style-loader/lib/listToStyles'] = listToStyles
 
-window.__mipComponentsWebpackHelpers__ = helpers
+export default function runMipComponentsPolyfill () {
+  mount(symbol, 'Symbol')
+  mount(set, 'Set')
+  mount(arrayFrom, 'from', Array)
+  mount(helpers, '__mipComponentsWebpackHelpers__')
 
-module.exports = helpers
+  // mount(promise, 'Promise')
+  // mount(objectAssign, 'assign', Object)
+  // mount(objectCreate, 'create', Object)
+  // mount(objectFreeze, 'freeze', Object)
+  // mount(objectGetPrototypeOf, 'getPrototypeOf', Object)
+}

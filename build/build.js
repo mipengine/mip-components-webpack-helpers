@@ -7,40 +7,95 @@
 
 process.env.NODE_ENV = 'production'
 
-const ora = require('ora')
-const rm = require('rimraf')
+const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk')
-const webpack = require('webpack')
-const webpackConfig = require('./webpack.config')
+const rollup = require('rollup')
+const cjs = require('rollup-plugin-commonjs')
+const resolve = require('rollup-plugin-node-resolve')
+const uglify = require('uglify-es')
+const zlib = require('zlib')
+const babel = require('rollup-plugin-babel')
 
-const spinner = ora('building for production...')
-spinner.start()
+const root = path.resolve(__dirname, '..')
+const babelHelpersPath = path.resolve(root, 'node_modules', 'babel-runtime', 'helpers')
+const babelHelpersFiles = fs.readdirSync(babelHelpersPath)
 
-rm(path.join(__dirname, '../dist'), err => {
-  if (err) {
-    throw err
-  }
+let sourcePath = path.resolve(root, 'source.js')
+let distPath = path.resolve(root, 'dist', 'mip-components-webpack-helpers.js')
 
-  webpack(webpackConfig, (err, stats) => {
-    spinner.stop()
-    if (err) {
-      throw err
-    }
+function preHandleSourceFile () {
+  let importHeader = ''
+  let moduleRef = `var BABEL_RUNTIME_HELPERS = 'babel-runtime/helpers/'`
 
-    process.stdout.write(stats.toString({
-      colors: true,
-      modules: false,
-      children: false, // If you are using ts-loader, setting this to true will make TypeScript errors show up during build.
-      chunks: false,
-      chunkModules: false
-    }) + '\n\n')
-
-    if (stats.hasErrors()) {
-      console.log(chalk.red('  Build failed with errors.\n'))
-      process.exit(1)
-    }
-
-    console.log(chalk.cyan('  Build complete.\n'))
+  babelHelpersFiles.forEach(file => {
+    let fileName = file.replace('.js', '')
+    let modulePath = 'babel-runtime/helpers/' + fileName
+    let moduleName = '_' + fileName.replace(/-/g, '_')
+    importHeader += `\nimport ${moduleName} from '${modulePath}'`
+    moduleRef += `\nhelpers[BABEL_RUNTIME_HELPERS + '${fileName}'] = ${moduleName}`
   })
-})
+
+  fs.writeFileSync(
+    sourcePath,
+    fs.readFileSync(path.resolve(root, 'index.js'), 'utf-8')
+      .replace('// __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__', importHeader)
+      .replace('// __INJECT_BABEL_RUNTIME_HELPERS_REF__', moduleRef)
+  )
+}
+
+function write (dest, code, zip) {
+  return new Promise((resolve, reject) => {
+    function report (extra) {
+      console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
+      resolve()
+    }
+
+    fs.writeFile(dest, code, err => {
+      if (err) return reject(err)
+      if (zip) {
+        zlib.gzip(code, (err, zipped) => {
+          if (err) return reject(err)
+          report(' (gzipped: ' + getSize(zipped) + ')')
+        })
+      } else {
+        report()
+      }
+    })
+  })
+}
+
+function getSize (code) {
+  return (code.length / 1024).toFixed(2) + 'kb'
+}
+
+function blue (str) {
+  return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
+}
+
+async function build () {
+  rollup.rollup({
+    input: path.resolve(root, 'source.js'), // sourcePath,
+    plugins: [
+      resolve(),
+      cjs(
+        {
+          include: 'node_modules/**'
+        }
+      ),
+      babel()
+    ]
+  })
+    .then(bundle => bundle.generate({
+      file: distPath,
+      format: 'es',
+      name: 'runMipComponentsPolyfill'
+    }))
+    .then(({ code }) => {
+      code = uglify.minify(code).code
+      write(distPath, code, true)
+      fs.unlinkSync(sourcePath)
+    })
+}
+
+preHandleSourceFile()
+build()
