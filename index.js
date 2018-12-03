@@ -27,14 +27,14 @@ function mount (obj, name, host) {
   }
 }
 
-var helpers = {}
+let helpers = {}
 
 // __INJECT_BABEL_RUNTIME_HELPERS_REF__
 helpers['babel-runtime/regenerator'] = regenerator
 helpers['css-loader/lib/css-base'] = cssBase
-helpers['vue-loader/lib/runtime/componentNormalizer'] = componentNormalizer
-helpers['vue-style-loader/lib/addStylesClient'] = addStylesClient
-helpers['vue-style-loader/lib/listToStyles'] = listToStyles
+helpers['vue-loader/lib/runtime/componentNormalizer'] = {__esModule: true, default: componentNormalizer}
+helpers['vue-style-loader/lib/addStylesClient'] = {__esModule: true, default: addStylesClient}
+helpers['vue-style-loader/lib/listToStyles'] = {__esModule: true, default: listToStyles}
 
 export default function runMipComponentsPolyfill () {
   mount(symbol, 'Symbol')
