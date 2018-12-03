@@ -28,15 +28,25 @@ function mount (obj, name, host) {
 }
 
 let helpers = {}
+let cssLoaderKey = 'css-loader/lib/css-base'
+let regeneratorKey = 'babel-runtime/regenerator'
 
 // __INJECT_BABEL_RUNTIME_HELPERS_REF__
-helpers['babel-runtime/regenerator'] = regenerator
-helpers['css-loader/lib/css-base'] = cssBase
-helpers['vue-loader/lib/runtime/componentNormalizer'] = {__esModule: true, default: componentNormalizer}
-helpers['vue-style-loader/lib/addStylesClient'] = {__esModule: true, default: addStylesClient}
-helpers['vue-style-loader/lib/listToStyles'] = {__esModule: true, default: listToStyles}
+helpers[cssLoaderKey] = cssBase
+helpers[regeneratorKey] = regenerator
+helpers['vue-loader/lib/runtime/componentNormalizer'] = componentNormalizer
+helpers['vue-style-loader/lib/addStylesClient'] = addStylesClient
+helpers['vue-style-loader/lib/listToStyles'] = listToStyles
 
-export default function runMipComponentsPolyfill () {
+// 兼容 mip-cli 里的 commonjs 写法。。
+for (let key in helpers) {
+  let ret = helpers[key]
+  if (key !== regeneratorKey && key !== cssLoaderKey) {
+    helpers[key] = {__esModule: true, default: ret}
+  }
+}
+
+export default function installMipComponentsPolyfill () {
   mount(symbol, 'Symbol')
   mount(set, 'Set')
   mount(arrayFrom, 'from', Array)

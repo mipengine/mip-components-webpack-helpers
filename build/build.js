@@ -88,7 +88,7 @@ async function build () {
     .then(bundle => bundle.generate({
       file: distPath,
       format: 'es',
-      name: 'runMipComponentsPolyfill'
+      name: 'installMipComponentsPolyfill'
     }))
     .then(({ code }) => {
       code = uglify.minify(code).code
