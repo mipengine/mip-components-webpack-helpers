@@ -41,7 +41,7 @@ helpers['vue-style-loader/lib/listToStyles'] = listToStyles
 // 兼容 mip-cli 里的 commonjs 写法。。
 for (let key in helpers) {
   let ret = helpers[key]
-  if (key !== regeneratorKey && key !== cssLoaderKey) {
+  if (key !== regeneratorKey && key !== cssLoaderKey && !ret.__esModule) {
     helpers[key] = {__esModule: true, default: ret}
   }
 }
