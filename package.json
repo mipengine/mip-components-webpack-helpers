@@ -4,7 +4,7 @@
   "description": "helpers for mip components",
   "main": "dist/mip-components-webpack-helpers.js",
   "scripts": {
-    "build": "node build/build.js",
+    "build": "rm -rf dist && node build/build.js",
     "prepublish": "npm run build"
   },
   "dependencies": {
