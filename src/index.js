@@ -3,11 +3,14 @@
  * @author mj(zoumiaojiang@gmail.com)
  */
 
-// __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__
+/* global __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__, __INJECT_BABEL_RUNTIME_HELPERS_REF__ */
+
+__INJECT_BABEL_RUNTIME_HELPERS_IMPORT__
+
 import regenerator from 'babel-runtime/regenerator'
 import cssBase from 'css-loader/lib/css-base'
 import componentNormalizer from 'vue-loader/lib/runtime/componentNormalizer'
-import addStylesClient from 'vue-style-loader/lib/addStylesClient'
+import addStylesClient from './add-styles-client'
 import listToStyles from 'vue-style-loader/lib/listToStyles'
 
 import symbol from 'babel-runtime/core-js/symbol'
@@ -27,26 +30,30 @@ function mount (obj, name, host) {
   }
 }
 
-let helpers = {}
-let cssLoaderKey = 'css-loader/lib/css-base'
-let regeneratorKey = 'babel-runtime/regenerator'
-
-// __INJECT_BABEL_RUNTIME_HELPERS_REF__
-helpers[cssLoaderKey] = cssBase
-helpers[regeneratorKey] = regenerator
-helpers['vue-loader/lib/runtime/componentNormalizer'] = componentNormalizer
-helpers['vue-style-loader/lib/addStylesClient'] = addStylesClient
-helpers['vue-style-loader/lib/listToStyles'] = listToStyles
-
-// 兼容 mip-cli 里的 commonjs 写法。。
-for (let key in helpers) {
-  let ret = helpers[key]
-  if (key !== regeneratorKey && key !== cssLoaderKey && !ret.__esModule) {
-    helpers[key] = {__esModule: true, default: ret}
-  }
+function esm(obj) {
+  return obj.__esModule ? obj : {__esModule: true, default: obj}
 }
 
 export default function installMipComponentsPolyfill () {
+  var helpers = {}
+  var cssLoaderKey = 'css-loader/lib/css-base'
+  var regeneratorKey = 'babel-runtime/regenerator'
+
+  __INJECT_BABEL_RUNTIME_HELPERS_REF__
+
+  helpers[cssLoaderKey] = cssBase
+  helpers[regeneratorKey] = regenerator
+  helpers['vue-loader/lib/runtime/componentNormalizer'] = componentNormalizer
+  helpers['vue-style-loader/lib/addStylesClient'] = addStylesClient
+  helpers['vue-style-loader/lib/listToStyles'] = listToStyles
+
+  // 兼容 mip-cli 里的 commonjs 写法。。
+  Object.keys(helpers).forEach(function (key) {
+    if (key !== regeneratorKey && key !== cssLoaderKey) {
+      esm(helpers[key])
+    }
+  })
+
   mount(symbol, 'Symbol')
   mount(set, 'Set')
   mount(arrayFrom, 'from', Array)
