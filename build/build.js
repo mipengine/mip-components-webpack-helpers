@@ -91,7 +91,7 @@ async function build () {
       name: 'installMipComponentsPolyfill'
     }))
     .then(({ code }) => {
-      code = uglify.minify(code).code
+      // code = uglify.minify(code).code
       write(distPath, code, true)
       fs.unlinkSync(sourcePath)
     })
