@@ -50,7 +50,7 @@ export default function installMipComponentsPolyfill () {
   // 兼容 mip-cli 里的 commonjs 写法。。
   Object.keys(helpers).forEach(function (key) {
     if (key !== regeneratorKey && key !== cssLoaderKey) {
-      esm(helpers[key])
+      helpers[key] = esm(helpers[key])
     }
   })
 

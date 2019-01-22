@@ -123,7 +123,7 @@ function createStyleElement () {
 }
 
 function addStyle (obj /* StyleObjectPart */) {
-  var update, remove
+  // var update, remove
   // var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
 
   // if (styleElement) {
@@ -149,9 +149,9 @@ function addStyle (obj /* StyleObjectPart */) {
   //   remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
   // } else {
   // use multi-style-tag mode in all other cases
-  styleElement = createStyleElement()
-  update = applyToTag.bind(null, styleElement)
-  remove = function () {
+  var styleElement = createStyleElement()
+  var update = applyToTag.bind(null, styleElement)
+  var remove = function () {
     styleElement.parentNode.removeChild(styleElement)
   }
   // }
