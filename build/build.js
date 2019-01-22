@@ -9,14 +9,36 @@ process.env.NODE_ENV = 'production'
 
 const fs = require('fs')
 const path = require('path')
-const rollup = require('rollup')
-const cjs = require('rollup-plugin-commonjs')
-const resolve = require('rollup-plugin-node-resolve')
+const glob = require('glob')
+// const rollup = require('rollup')
+// const cjs = require('rollup-plugin-commonjs')
+// const resolve = require('rollup-plugin-node-resolve')
 // const uglify = require('uglify-es')
 // const zlib = require('zlib')
-const replace = require('rollup-plugin-replace')
+// const replace = require('rollup-plugin-replace')
 
 const root = path.resolve(__dirname, '..')
+
+const srcDir = path.resolve(root, 'src')
+const distDir = path.resolve(root, 'dist')
+
+try {
+  fs.mkdirSync(distDir, {recursive: true})
+} catch (e) {}
+
+const {imports, refs} = preHandleSourceFile()
+
+const srcPaths = glob.sync('**/*', {
+  cwd: srcDir,
+  root: srcDir
+})
+
+srcPaths.forEach(srcPath => {
+  let file = fs.readFileSync(path.resolve(srcDir, srcPath), 'utf-8')
+  file = file.replace('__INJECT_BABEL_RUNTIME_HELPERS_IMPORT__', imports)
+    .replace('__INJECT_BABEL_RUNTIME_HELPERS_REF__', refs)
+  fs.writeFileSync(path.resolve(distDir, srcPath), file, 'utf-8')
+})
 
 let distPath = path.resolve(root, 'dist', 'mip-components-webpack-helpers.js')
 
@@ -41,36 +63,36 @@ function preHandleSourceFile () {
   }
 }
 
-function build () {
-  let {imports, refs} = preHandleSourceFile()
+// function build () {
+//   let {imports, refs} = preHandleSourceFile()
 
-  rollup.rollup({
-    input: path.resolve(root, 'src/index.js'), // sourcePath,
-    plugins: [
-      replace({
-        __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__: imports,
-        __INJECT_BABEL_RUNTIME_HELPERS_REF__: refs
-      }),
-      resolve(),
-      cjs(
-        {
-          include: 'node_modules/**'
-        }
-      )
-    ]
-  })
-  .then(bundle => bundle.write({
-    file: distPath,
-    format: 'es',
-    name: 'installMipComponentsPolyfill'
-  }))
+//   rollup.rollup({
+//     input: path.resolve(root, 'src/index.js'), // sourcePath,
+//     plugins: [
+//       replace({
+//         __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__: imports,
+//         __INJECT_BABEL_RUNTIME_HELPERS_REF__: refs
+//       }),
+//       resolve(),
+//       cjs(
+//         {
+//           include: 'node_modules/**'
+//         }
+//       )
+//     ]
+//   })
+//   .then(bundle => bundle.write({
+//     file: distPath,
+//     format: 'es',
+//     name: 'installMipComponentsPolyfill'
+//   }))
 
-    // .then(({ code }) => {
-    //   console.log(code)
-    //   // code = uglify.minify(code).code
-    //   write(distPath, code, true)
-    // })
-}
+//     // .then(({ code }) => {
+//     //   console.log(code)
+//     //   // code = uglify.minify(code).code
+//     //   write(distPath, code, true)
+//     // })
+// }
 
-// preHandleSourceFile()
-build()
+// // preHandleSourceFile()
+// build()
