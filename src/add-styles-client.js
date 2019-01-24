@@ -114,11 +114,25 @@ function addStylesToDom (styles /* Array<StyleObject> */) {
   }
 }
 
+var styleLinks = head.querySelectorAll('link[rel=styleSheet]')
+var mipCssNext
+
+for (var i = 0; i < styleLinks.length; i++) {
+  var href = styleLinks[i].getAttribute('href')
+  if (href && href.slice(-8) === '/mip.css') {
+    mipCssNext = styleLinks[i].nextSibling
+    break
+  }
+}
+
 function createStyleElement () {
   var styleElement = document.createElement('style')
   styleElement.type = 'text/css'
   // head.appendChild(styleElement)
-  head.insertBefore(styleElement, head.firstChild)
+  head.insertBefore(
+    styleElement,
+    mipCssNext || head.firstChild
+  )
   return styleElement
 }
 
