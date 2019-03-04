@@ -3,8 +3,6 @@
  * @author mj(zoumiaojiang@gmail.com)
  */
 
-/* global __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__, __INJECT_BABEL_RUNTIME_HELPERS_REF__ */
-
 __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__
 
 import regenerator from 'babel-runtime/regenerator'
