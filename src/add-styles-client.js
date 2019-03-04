@@ -114,11 +114,15 @@ function addStylesToDom (styles /* Array<StyleObject> */) {
   }
 }
 
+var mipCssLink
+
 function createStyleElement () {
   var styleElement = document.createElement('style')
   styleElement.type = 'text/css'
   // head.appendChild(styleElement)
-  head.insertBefore(styleElement, head.firstChild)
+  mipCssLink = mipCssLink || head.querySelector('link[rel=stylesheet][href*="/mip.css"]')
+  // head.firstChild 与 MIP1 保持一致
+  head.insertBefore(styleElement, mipCssLink && mipCssLink.nextSibling || head.firstChild)
   return styleElement
 }
 
