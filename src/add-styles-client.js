@@ -114,25 +114,15 @@ function addStylesToDom (styles /* Array<StyleObject> */) {
   }
 }
 
-var styleLinks = head.querySelectorAll('link[rel=styleSheet]')
-var mipCssNext
-
-for (var i = 0; i < styleLinks.length; i++) {
-  var href = styleLinks[i].getAttribute('href')
-  if (href && href.slice(-8) === '/mip.css') {
-    mipCssNext = styleLinks[i].nextSibling
-    break
-  }
-}
+var mipCssLink
 
 function createStyleElement () {
   var styleElement = document.createElement('style')
   styleElement.type = 'text/css'
   // head.appendChild(styleElement)
-  head.insertBefore(
-    styleElement,
-    mipCssNext || head.firstChild
-  )
+  mipCssLink = mipCssLink || head.querySelector('link[rel=stylesheet][href*="/mip.css"]')
+  // head.firstChild 与 MIP1 保持一致
+  head.insertBefore(styleElement, mipCssLink && mipCssLink.nextSibling || head.firstChild)
   return styleElement
 }
 
