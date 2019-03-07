@@ -4,16 +4,23 @@
   "description": "helpers for mip components",
   "main": "dist/index.js",
   "scripts": {
-    "build": "node build/build.js"
+    "build": "rm -rf dist && node build/build.js"
   },
   "dependencies": {
-    "babel-runtime": "^6.26.0",
+    "fs-extra": "^7.0.1"
+  },
+  "devDependencies": {
+    "@babel/runtime": "^7.3.4",
     "css-loader": "^0.28.11",
+    "glob": "^7.1.3",
     "vue-loader": "^15.2.4",
     "vue-style-loader": "^4.1.0"
   },
-  "devDependencies": {
-    "glob": "^7.1.3"
+  "peerDependencies": {
+    "@babel/runtime": "^7.3.4",
+    "css-loader": "^0.28.11",
+    "vue-loader": "^15.2.4",
+    "vue-style-loader": "^4.1.0"
   },
   "repository": {
     "type": "git",
