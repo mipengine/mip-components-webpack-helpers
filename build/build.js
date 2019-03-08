@@ -38,3 +38,16 @@ srcPaths.forEach(srcPath => {
     .replace('__INJECT_BABEL_RUNTIME_HELPERS_STATEMENTS__', statements)
   fs.writeFileSync(path.resolve(distDir, srcPath), file, 'utf-8')
 })
+
+// @TEST
+// try {
+//   const nodeModules = path.resolve(root, '../minify/mip2/packages/mip/node_modules/mip-components-webpack-helpers')
+//   fs.removeSync(path.resolve(nodeModules, 'dist'))
+//   fs.removeSync(path.resolve(nodeModules, 'package.json'))
+//   fs.copySync(path.resolve(root, 'dist'), path.resolve(nodeModules, 'dist'))
+//   fs.copySync(path.resolve(root, 'package.json'), path.resolve(nodeModules, 'package.json'))
+// }
+// catch (e) {
+//   console.log(e)
+// }
+// @TEST
