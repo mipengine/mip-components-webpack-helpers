@@ -5,97 +5,49 @@
 
 'use strict'
 
-process.env.NODE_ENV = 'production'
+// process.env.NODE_ENV = 'production'
 
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
-const rollup = require('rollup')
-const cjs = require('rollup-plugin-commonjs')
-const resolve = require('rollup-plugin-node-resolve')
-const uglify = require('uglify-es')
-const zlib = require('zlib')
-const babel = require('rollup-plugin-babel')
+const glob = require('glob')
+const {prefix} = require('../lib/data')
+const generate = require('../lib/generate')
 
 const root = path.resolve(__dirname, '..')
-const babelHelpersPath = path.resolve(root, 'node_modules', 'babel-runtime', 'helpers')
-const babelHelpersFiles = fs.readdirSync(babelHelpersPath)
 
-let sourcePath = path.resolve(root, 'source.js')
-let distPath = path.resolve(root, 'dist', 'mip-components-webpack-helpers.js')
+const srcDir = path.resolve(root, 'src')
+const distDir = path.resolve(root, 'dist')
 
-function preHandleSourceFile () {
-  let importHeader = ''
-  let moduleRef = `var BABEL_RUNTIME_HELPERS = 'babel-runtime/helpers/'`
+try {
+  fs.mkdirSync(distDir, {recursive: true})
+} catch (e) {}
 
-  babelHelpersFiles.forEach(file => {
-    let fileName = file.replace('.js', '')
-    let modulePath = 'babel-runtime/helpers/' + fileName
-    let moduleName = '_' + fileName.replace(/-/g, '_')
-    importHeader += `\nimport ${moduleName} from '${modulePath}'`
-    moduleRef += `\nhelpers[BABEL_RUNTIME_HELPERS + '${fileName}'] = ${moduleName}`
-  })
+const {imports, vars, statements} = generate()
 
-  fs.writeFileSync(
-    sourcePath,
-    fs.readFileSync(path.resolve(root, 'index.js'), 'utf-8')
-      .replace('// __INJECT_BABEL_RUNTIME_HELPERS_IMPORT__', importHeader)
-      .replace('// __INJECT_BABEL_RUNTIME_HELPERS_REF__', moduleRef)
-  )
-}
+const srcPaths = glob.sync('**/*', {
+  cwd: srcDir,
+  root: srcDir
+})
 
-function write (dest, code, zip) {
-  return new Promise((resolve, reject) => {
-    function report (extra) {
-      console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
-      resolve()
-    }
+srcPaths.forEach(srcPath => {
+  let file = fs.readFileSync(path.resolve(srcDir, srcPath), 'utf-8')
+  file = file
+    .replace('__INJECT_PREFIX__', prefix)
+    .replace('__INJECT_BABEL_RUNTIME_HELPERS_IMPORT__', imports)
+    .replace('__INJECT_BABEL_RUNTIME_HELPERS_VARIABLES__', vars)
+    .replace('__INJECT_BABEL_RUNTIME_HELPERS_STATEMENTS__', statements)
+  fs.writeFileSync(path.resolve(distDir, srcPath), file, 'utf-8')
+})
 
-    fs.writeFile(dest, code, err => {
-      if (err) return reject(err)
-      if (zip) {
-        zlib.gzip(code, (err, zipped) => {
-          if (err) return reject(err)
-          report(' (gzipped: ' + getSize(zipped) + ')')
-        })
-      } else {
-        report()
-      }
-    })
-  })
-}
-
-function getSize (code) {
-  return (code.length / 1024).toFixed(2) + 'kb'
-}
-
-function blue (str) {
-  return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
-}
-
-async function build () {
-  rollup.rollup({
-    input: path.resolve(root, 'source.js'), // sourcePath,
-    plugins: [
-      resolve(),
-      cjs(
-        {
-          include: 'node_modules/**'
-        }
-      ),
-      babel()
-    ]
-  })
-    .then(bundle => bundle.generate({
-      file: distPath,
-      format: 'es',
-      name: 'installMipComponentsPolyfill'
-    }))
-    .then(({ code }) => {
-      code = uglify.minify(code).code
-      write(distPath, code, true)
-      fs.unlinkSync(sourcePath)
-    })
-}
-
-preHandleSourceFile()
-build()
+// @TEST
+// try {
+//   const nodeModules = path.resolve(root, '../minify/mip2/packages/mip/node_modules/mip-components-webpack-helpers')
+//   fs.removeSync(path.resolve(nodeModules, 'dist'))
+//   fs.removeSync(path.resolve(nodeModules, 'package.json'))
+//   fs.copySync(path.resolve(root, 'dist'), path.resolve(nodeModules, 'dist'))
+//   fs.copySync(path.resolve(root, 'package.json'), path.resolve(nodeModules, 'package.json'))
+// }
+// catch (e) {
+//   console.log(e)
+// }
+// @TEST
